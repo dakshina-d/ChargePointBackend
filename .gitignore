@@ -1,0 +1,24 @@
+# Logs
+logs/
+*.log
+
+# Build output
+target/
+
+# Maven
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# IDEs and editor settings
+.idea/
+*.iml
+*.class
+*.swp
+.vscode/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Docker
+**/docker/logs/
