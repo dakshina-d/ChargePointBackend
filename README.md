@@ -69,10 +69,6 @@ cd ../TransactionService
 mvn test
 
 
-
-
-
-
 2. Pulling Docker images
 
 # You can also pull prebuilt images directly from Docker Hub:
