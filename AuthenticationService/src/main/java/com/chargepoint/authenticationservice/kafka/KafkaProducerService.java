@@ -16,8 +16,9 @@ public class KafkaProducerService {
     @Value("${kafka.response.topic}")
     private String responseTopic;
 
-    public void sendAuthorizationResponse(String responseJson) {
-        log.info("Sending authorization response to Kafka: {}", responseJson);
-        kafkaTemplate.send(responseTopic, responseJson);
+    public void sendAuthorizationResponse(String correlationId, String responseJson) {
+        log.info("Sending authorization response to Kafka (correlationId={}): {}",
+                correlationId, responseJson);
+        kafkaTemplate.send(responseTopic, correlationId, responseJson);
     }
 }

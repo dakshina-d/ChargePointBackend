@@ -19,23 +19,23 @@ public class AuthorizationProcessorService {
         WHITELIST.put("12345678901234567891", false); // Not allowed
     }
 
-    public AuthorizationResponse process(AuthorizationRequest request) {
+    public AuthorizationResponse process(AuthorizationRequest request, String correlationId) {
         String identifier = request.getDriverIdentifier().getId();
 
         log.info("Processing authorization for identifier: {}", identifier);
 
         if (identifier == null || identifier.length() < 20 || identifier.length() > 80) {
-            return new AuthorizationResponse("Invalid");
+            return new AuthorizationResponse("Invalid", correlationId);
         }
 
         Boolean allowed = WHITELIST.get(identifier);
 
         if (allowed == null) {
-            return new AuthorizationResponse("Unknown");
+            return new AuthorizationResponse("Unknown", correlationId);
         } else if (Boolean.TRUE.equals(allowed)) {
-            return new AuthorizationResponse("Accepted");
+            return new AuthorizationResponse("Accepted", correlationId);
         } else {
-            return new AuthorizationResponse("Rejected");
+            return new AuthorizationResponse("Rejected", correlationId);
         }
     }
 }

@@ -2,6 +2,7 @@ package com.chargepoint.transactionservice.controller;
 
 import com.chargepoint.transactionservice.dto.AuthorizationRequest;
 import com.chargepoint.transactionservice.dto.AuthorizationResponse;
+import com.chargepoint.transactionservice.dto.AuthorizationResponseDto;
 import com.chargepoint.transactionservice.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +17,10 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping("/authorize")
-    public ResponseEntity<AuthorizationResponse> authorize(@Valid @RequestBody AuthorizationRequest request) throws Exception {
+    public ResponseEntity<AuthorizationResponseDto> authorize(@Valid @RequestBody AuthorizationRequest request) throws Exception {
         AuthorizationResponse response = transactionService.authorize(request);
-        return ResponseEntity.ok(response);
+        AuthorizationResponseDto authorizationResponseDto = new AuthorizationResponseDto();
+        authorizationResponseDto.setAuthorizationStatus(response.getAuthorizationStatus());
+        return ResponseEntity.ok(authorizationResponseDto);
     }
 }

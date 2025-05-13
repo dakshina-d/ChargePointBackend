@@ -1,6 +1,8 @@
 package com.chargepoint.transactionservice.kafka;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +18,12 @@ import org.springframework.kafka.test.utils.KafkaTestUtils;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@EmbeddedKafka(partitions = 1, topics = { "auth-request-topic" })
+@EmbeddedKafka(partitions = 1, topics = {"auth-request-topic"})
 class KafkaProducerServiceTest {
 
     @Autowired
@@ -34,10 +37,9 @@ class KafkaProducerServiceTest {
     @BeforeEach
     void setUp() {
         records = new LinkedBlockingQueue<>();
-
         Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testGroup", "false", embeddedKafkaBroker);
+        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         DefaultKafkaConsumerFactory<String, String> consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps);
-
         ContainerProperties containerProps = new ContainerProperties("auth-request-topic");
         KafkaMessageListenerContainer<String, String> container = new KafkaMessageListenerContainer<>(consumerFactory, containerProps);
         container.setupMessageListener((MessageListener<String, String>) records::add);
@@ -45,16 +47,15 @@ class KafkaProducerServiceTest {
     }
 
     @Test
-    void shouldSendAuthorizationRequest() throws InterruptedException {
-        // Arrange
-        String testMessage = "{\"authorizationStatus\":\"Accepted\"}";
+    void shouldSendAuthorizationRequestWithCorrelationId() throws InterruptedException {
+        String correlationId = "test-123";
+        String jsonRequest = "{\"stationUuid\":\"abc\",\"driverIdentifier\":{\"id\":\"1234567890\"}}";
 
-        // Act
-        kafkaProducerService.sendAuthorizationRequest(testMessage);
+        kafkaProducerService.sendAuthorizationRequest(correlationId, jsonRequest);
 
-        // Assert
-        ConsumerRecord<String, String> received = records.take();
-        assertThat(received).isNotNull();
-        assertThat(received.value()).isEqualTo(testMessage);
+        ConsumerRecord<String, String> record = records.poll(10, TimeUnit.SECONDS);
+        assertThat(record).isNotNull();
+        assertThat(record.key()).isEqualTo(correlationId);
+        assertThat(record.value()).isEqualTo(jsonRequest);
     }
 }

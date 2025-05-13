@@ -21,14 +21,51 @@ class KafkaProducerServiceTest {
 
     @BeforeEach
     void setUp() {
+        // initialize with mock template and override the @Value field
         kafkaProducerService = new KafkaProducerService(kafkaTemplate);
-        ReflectionTestUtils.setField(kafkaProducerService, "responseTopic", "auth-response-topic");
+        ReflectionTestUtils.setField(
+                kafkaProducerService,
+                "responseTopic",
+                "auth-response-topic"
+        );
     }
 
     @Test
     void shouldSendAuthorizationResponse() {
-        kafkaProducerService.sendAuthorizationResponse("{\"status\":\"Accepted\"}");
+        // given
+        String correlationId = "corr-abc";
+        String responseJson = "{\"authorizationStatus\":\"Accepted\",\"correlationId\":\"corr-abc\"}";
 
-        verify(kafkaTemplate).send("auth-response-topic", "{\"status\":\"Accepted\"}");
+        // when
+        kafkaProducerService.sendAuthorizationResponse(correlationId, responseJson);
+
+        // then
+        // verify that the KafkaTemplate was called with topic, key, and payload
+        verify(kafkaTemplate).send(
+                "auth-response-topic",
+                correlationId,
+                responseJson
+        );
     }
+
+//    @Mock
+//    private KafkaTemplate<String, String> kafkaTemplate;
+//
+//    private KafkaProducerService kafkaProducerService;
+//
+//    @BeforeEach
+//    void setUp() {
+//        kafkaProducerService = new KafkaProducerService(kafkaTemplate);
+//        ReflectionTestUtils.setField(kafkaProducerService, "responseTopic", "auth-response-topic");
+//    }
+//
+//    @Test
+//    void shouldSendAuthorizationResponse() {
+//        String correlationId = "corr-abc";
+//        String responseJson = "{\"status\":\"Accepted\"}";
+//
+//        kafkaProducerService.sendAuthorizationResponse(correlationId, responseJson);
+//
+//        verify(kafkaTemplate).send("auth-response-topic", correlationId, responseJson);
+//    }
 }

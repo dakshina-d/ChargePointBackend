@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class LoggingAspect {
 
-    // Pointcut: all public methods inside com.chargepoint.transactionservice.kafka package
-    @Pointcut("execution(public * com.chargepoint..service..*(..))")
+    // Pointcut: all public methods inside com.chargepoint.authenticationservice.* package
+    @Pointcut("execution(public * com.chargepoint.authenticationservice..*(..))")
     public void kafkaServiceMethods() {
         // Pointcut signature method, empty body
     }

@@ -6,50 +6,75 @@ import com.chargepoint.authenticationservice.dto.DriverIdentifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class AuthorizationProcessorServiceTest {
 
-    private AuthorizationProcessorService authorizationProcessorService;
+    private AuthorizationProcessorService service;
 
     @BeforeEach
     void setUp() {
-        authorizationProcessorService = new AuthorizationProcessorService();
+        service = new AuthorizationProcessorService();
     }
 
     @Test
     void shouldReturnAcceptedForAllowedIdentifier() {
-        AuthorizationRequest request = new AuthorizationRequest("station1",
-                new DriverIdentifier("12345678901234567890"));
-        AuthorizationResponse response = authorizationProcessorService.process(request);
-
-        assertEquals("Accepted", response.getAuthorizationStatus());
+        AuthorizationRequest req = new AuthorizationRequest(
+                "station1",
+                new DriverIdentifier("12345678901234567890"),
+                "cid"
+        );
+        AuthorizationResponse resp = service.process(req, "cid");
+        assertEquals("Accepted", resp.getAuthorizationStatus());
+        assertEquals("cid", resp.getCorrelationId());
     }
 
     @Test
     void shouldReturnRejectedForNotAllowedIdentifier() {
-        AuthorizationRequest request = new AuthorizationRequest("station2",
-                new DriverIdentifier("12345678901234567891"));
-        AuthorizationResponse response = authorizationProcessorService.process(request);
-
-        assertEquals("Rejected", response.getAuthorizationStatus());
+        AuthorizationRequest req = new AuthorizationRequest(
+                "station2",
+                new DriverIdentifier("12345678901234567891"),
+                "cid"
+        );
+        AuthorizationResponse resp = service.process(req, "cid");
+        assertEquals("Rejected", resp.getAuthorizationStatus());
+        assertEquals("cid", resp.getCorrelationId());
     }
 
     @Test
     void shouldReturnUnknownForNonWhitelistedIdentifier() {
-        AuthorizationRequest request = new AuthorizationRequest("station3",
-                new DriverIdentifier("99999999999999999999"));
-        AuthorizationResponse response = authorizationProcessorService.process(request);
-
-        assertEquals("Unknown", response.getAuthorizationStatus());
+        AuthorizationRequest req = new AuthorizationRequest(
+                "station3",
+                new DriverIdentifier("99999999999999999999"),
+                "cid"
+        );
+        AuthorizationResponse resp = service.process(req, "cid");
+        assertEquals("Unknown", resp.getAuthorizationStatus());
+        assertEquals("cid", resp.getCorrelationId());
     }
 
     @Test
     void shouldReturnInvalidForShortIdentifier() {
-        AuthorizationRequest request = new AuthorizationRequest("station4",
-                new DriverIdentifier("short-id"));
-        AuthorizationResponse response = authorizationProcessorService.process(request);
+        AuthorizationRequest req = new AuthorizationRequest(
+                "station4",
+                new DriverIdentifier("short-id"),
+                "cid"
+        );
+        AuthorizationResponse resp = service.process(req, "cid");
+        assertEquals("Invalid", resp.getAuthorizationStatus());
+        assertEquals("cid", resp.getCorrelationId());
+    }
 
-        assertEquals("Invalid", response.getAuthorizationStatus());
+    @Test
+    void shouldReturnInvalidForTooLongIdentifier() {
+        String longId = "x".repeat(81);
+        AuthorizationRequest req = new AuthorizationRequest(
+                "station5",
+                new DriverIdentifier(longId),
+                "cid"
+        );
+        AuthorizationResponse resp = service.process(req, "cid");
+        assertEquals("Invalid", resp.getAuthorizationStatus());
+        assertEquals("cid", resp.getCorrelationId());
     }
 }

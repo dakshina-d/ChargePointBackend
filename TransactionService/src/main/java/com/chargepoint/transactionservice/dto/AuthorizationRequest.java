@@ -16,4 +16,6 @@ public class AuthorizationRequest {
 
     @Valid
     private DriverIdentifier driverIdentifier;
+
+    private String correlationId;
 }

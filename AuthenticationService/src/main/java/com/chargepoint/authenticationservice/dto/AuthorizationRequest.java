@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class AuthorizationRequest {
     private String stationUuid;
     private DriverIdentifier driverIdentifier;
+    private String correlationId;
 }
